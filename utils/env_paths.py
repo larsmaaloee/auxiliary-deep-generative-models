@@ -1,5 +1,5 @@
 from os.path import join, exists, abspath
-from os import mkdir, listdir
+from os import makedirs, listdir
 import time
 import datetime
 import uuid
@@ -9,10 +9,10 @@ def get_project_name():
     return 'auxiliary-deep-generative-models'
 
 
-def get_data_path():
+def get_data_path(dataset=""):
     project_name = get_project_name()
     full_path = abspath('.')
-    path = join(full_path[:full_path.find(project_name) + len(project_name)], 'data_preparation')
+    path = join(full_path[:full_path.find(project_name) + len(project_name)], 'data', dataset)
     return path_exists(path)
 
 
@@ -85,5 +85,5 @@ def create_root_output_path(type, n_in, n_hidden, n_out):
 
 def path_exists(path):
     if not exists(path):
-        mkdir(path)
+        makedirs(path)
     return path

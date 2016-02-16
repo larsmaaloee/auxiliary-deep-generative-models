@@ -1,0 +1,6 @@
+git+https://github.com/Theano/Theano.git
+git+https://github.com/Lasagne/Lasagne.git
+numpy
+matplotlib
+seaborn
+https://github.com/casperkaae/parmesan

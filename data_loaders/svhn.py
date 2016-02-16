@@ -4,6 +4,7 @@ from utils import env_paths
 from parmesan.datasets import load_svhn
 from data_helper import create_semi_supervised, pad_targets, cut_off_dataset
 
+
 def _download(extra=False, normalize=True):
     """
     Download the SVHN dataset if it is not present.
@@ -17,11 +18,9 @@ def _download(extra=False, normalize=True):
         x[:, 1] /= std[1]
         x[:, 2] /= std[2]
         x = x.reshape((-1, 3 * 32 * 32))
-
-        # x /= 256.
         return x
 
-    train_x, train_t, test_x, test_t = load_svhn(os.path.join(env_paths.get_data_path("mnist"), "mnist.pkl.gz"),
+    train_x, train_t, test_x, test_t = load_svhn(os.path.join(env_paths.get_data_path("svhn"), ""),
                                                  normalize=False,
                                                  dequantify=True,
                                                  extra=extra)
@@ -40,10 +39,12 @@ def _download(extra=False, normalize=True):
 
     return (train_x, train_t), (test_x, test_t), (valid_x, valid_t)
 
+
 def _gen_conv(xy):
     x, y = xy
     x = x.reshape((-1, 3, 32, 32))
     return x, y
+
 
 def load_supervised(conv=False, extra=False, normalize=True):
     """
@@ -74,7 +75,7 @@ def load_semi_supervised(n_labeled=100, cut_off=1000, seed=123456, conv=False, e
     of labeled data will be evenly distributed accross classes.
     :param n_labeled: Number of labeled data points.
     :param cut_off: A cut off constant so that the data set is divisable.
-    :param seed: the seed for the pseudo random shuffle of data points.
+    :param seed: The seed for the pseudo random shuffle of data points.
     :param conv: Boolean whether the images should be vectorized or not.
     :param extra: Include the extra set or not.
     :return: Train set unlabeled and labeled, test set, validation set.

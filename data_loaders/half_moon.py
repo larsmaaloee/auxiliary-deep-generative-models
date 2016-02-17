@@ -2,6 +2,7 @@ from sklearn.datasets import make_moons
 import numpy as np
 from data_helper import pad_targets
 
+
 def _download():
     train_x, train_t = make_moons(n_samples=10000, shuffle=True, noise=0.2, random_state=1234)
     test_x, test_t = make_moons(n_samples=10000, shuffle=True, noise=0.2, random_state=1234)

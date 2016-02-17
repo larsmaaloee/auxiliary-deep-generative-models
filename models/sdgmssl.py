@@ -21,8 +21,8 @@ class SDGMSSL(Model):
     Auxiliary Generative Models article on Arxiv.org.
     """
 
-    def __init__(self, n_x, n_a, n_z, n_y, qa_hid, qz_hid, qy_hid, px_hid, pa_hid, trans_func=rectify,
-                 x_dist='bernoulli', batchnorm=False, seed=1234):
+    def __init__(self, n_x, n_a, n_z, n_y, qa_hid, qz_hid, qy_hid, px_hid, pa_hid, nonlinearity=rectify,
+                 px_nonlinearity=None, x_dist='bernoulli', batchnorm=False, seed=1234):
         """
         Initialize an skip deep generative model consisting of
         discriminative classifier q(y|a,x),
@@ -37,12 +37,12 @@ class SDGMSSL(Model):
         :param qz_hid: List of number of deterministic hidden q(z|a,x,y).
         :param qy_hid: List of number of deterministic hidden q(y|a,x).
         :param px_hid: List of number of deterministic hidden p(a|z,y) & p(x|z,y).
-        :param trans_func: The transfer function used in the deterministic layers.
+        :param nonlinearity: The transfer function used in the deterministic layers.
         :param x_dist: The x distribution, 'bernoulli', 'multinomial', or 'gaussian'.
         :param batchnorm: Boolean value for batch normalization.
         :param seed: The random seed.
         """
-        super(SDGMSSL, self).__init__(n_x, qz_hid + px_hid, n_a + n_z, trans_func)
+        super(SDGMSSL, self).__init__(n_x, qz_hid + px_hid, n_a + n_z, nonlinearity)
         self.x_dist = x_dist
         self.n_y = n_y
         self.n_x = n_x
@@ -54,7 +54,7 @@ class SDGMSSL(Model):
         # Decide Glorot initializaiton of weights.
         init_w = 1e-3
         hid_w = ""
-        if trans_func == rectify or trans_func == softplus:
+        if nonlinearity == rectify or nonlinearity == softplus:
             hid_w = "relu"
 
         # Define symbolic variables for theano functions.
@@ -74,9 +74,9 @@ class SDGMSSL(Model):
                 dense = BatchNormLayer(dense)
             return NonlinearityLayer(dense, self.transf)
 
-        def stochastic_layer(layer_in, n, samples):
-            mu = DenseLayer(layer_in, n, init.Normal(init_w), init.Normal(init_w), None)
-            logvar = DenseLayer(layer_in, n, init.Normal(init_w), init.Normal(init_w), None)
+        def stochastic_layer(layer_in, n, samples, nonlin=None):
+            mu = DenseLayer(layer_in, n, init.Normal(init_w), init.Normal(init_w), nonlin)
+            logvar = DenseLayer(layer_in, n, init.Normal(init_w), init.Normal(init_w), nonlin)
             return SampleLayer(mu, logvar, eq_samples=samples, iw_samples=1), mu, logvar
 
         # Input layers
@@ -154,7 +154,7 @@ class SDGMSSL(Model):
         elif x_dist == 'multinomial':
             l_px_zy = DenseLayer(l_px_zy, n_x, init.GlorotNormal(), init.Normal(init_w), softmax)
         elif x_dist == 'gaussian':
-            l_px_zy, l_px_zy_mu, l_px_zy_logvar = stochastic_layer(l_px_zy, n_x, 1)
+            l_px_zy, l_px_zy_mu, l_px_zy_logvar = stochastic_layer(l_px_zy, n_x, 1, px_nonlinearity)
 
         # Reshape all the model layers to have the same size
         self.l_x_in = l_x_in

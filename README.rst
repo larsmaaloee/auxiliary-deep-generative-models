@@ -1,6 +1,6 @@
 Auxiliary Deep Generatives Models
 =======
-This repository is the implementation of the skip deep generative model.
+This repository is the implementation of the Auxiliary Deep Generative Models article.
 
 
 The implementation is build on the `Parmesan <https://github.com/casperkaae/parmesan>`_, `Lasagne <http://github.com/Lasagne/Lasagne>`_ and `Theano <https://github.com/Theano/Theano>`_ libraries.

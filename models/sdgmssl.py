@@ -291,9 +291,7 @@ class SDGMSSL(Model):
         elbo = ((lb_l.mean() + lb_u.mean()) * n + weight_priors) / -n
         lb_labeled = -lb_l.mean()
         lb_unlabeled = -lb_u.mean()
-        out_px_zy = log_px_zy_u.mean() + log_px_zy_l.mean()
-        out_a = (log_pa_l.mean() + log_pa_u.mean()) - (log_qa_x_l.mean() + log_qa_x_u.mean())
-        out_z = (log_pz_l.mean() + log_pz_u.mean()) - (log_qz_axy_l.mean() + log_qz_axy_u.mean())
+        log_px = log_px_zy_u.mean() + log_px_zy_l.mean()
 
         grads = T.grad(elbo, self.trainable_model_params)
         clip_grad, max_norm = 1, 5
@@ -317,7 +315,7 @@ class SDGMSSL(Model):
                   self.sym_t_l: t_batch_l}
         inputs = [self.sym_index, self.sym_batchsize, self.sym_bs_l, self.sym_beta,
                   self.sym_lr, sym_beta1, sym_beta2, self.sym_samples]
-        outputs = [elbo, lb_labeled, lb_unlabeled, out_px_zy, out_a, out_z]
+        outputs = [elbo, lb_labeled, lb_unlabeled, log_px]
         f_train = theano.function(inputs=inputs, outputs=outputs, givens=givens, updates=updates)
 
         # Default training args. Note that these can be changed during or prior to training.
@@ -332,8 +330,6 @@ class SDGMSSL(Model):
         self.train_args['outputs']['lb-labeled'] = '%0.4f'
         self.train_args['outputs']['lb-unlabeled'] = '%0.4f'
         self.train_args['outputs']['log(px)'] = '%0.4f'
-        self.train_args['outputs']['KL(p(a)||q(a))'] = '%0.4f'
-        self.train_args['outputs']['KL(p(z)||q(z))'] = '%0.4f'
 
         # Validation and test function
         y = get_output(self.l_qy, self.sym_x_l, deterministic=True).mean(axis=(1, 2))

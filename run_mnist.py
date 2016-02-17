@@ -4,7 +4,7 @@ import theano
 from training.train import TrainModel
 from lasagne_extensions.nonlinearities import rectify
 from data_loaders import mnist
-from models import SDGMSSL
+from models.sdgmssl import SDGMSSL
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 import numpy as np

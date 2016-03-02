@@ -22,7 +22,7 @@ def run_sdgmssl_mnist():
     # Initialize the auxiliary deep generative model.
     model = SDGMSSL(n_x=n_x, n_a=100, n_z=100, n_y=10, qa_hid=[500, 500],
                     qz_hid=[500, 500], qy_hid=[500, 500], px_hid=[500, 500], pa_hid=[500, 500],
-                    nonlinearity=rectify, batchnorm=False, x_dist='bernoulli')
+                    nonlinearity=rectify, batchnorm=True, x_dist='bernoulli')
 
     # Get the training functions.
     f_train, f_test, f_validate, train_args, test_args, validate_args = model.build_model(*mnist_data)

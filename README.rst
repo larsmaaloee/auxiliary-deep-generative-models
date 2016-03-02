@@ -1,6 +1,6 @@
 Auxiliary Deep Generatives Models
 =======
-This repository is the implementation of the Auxiliary Deep Generative Models article.
+This repository is the implementation of the article on `Auxiliary Deep Generative Models <http://arxiv.org/abs/1602.05473>`_.
 
 
 The implementation is build on the `Parmesan <https://github.com/casperkaae/parmesan>`_, `Lasagne <http://github.com/Lasagne/Lasagne>`_ and `Theano <https://github.com/Theano/Theano>`_ libraries.
@@ -30,10 +30,8 @@ Examples
 -------------
 The repository primarily includes
 
-
 * script running a new model on the MNIST dataset with only 100 labels - *run_sdgmssl_mnist.py*.
-* script running a new model on the SVHN dataset with only 1000 labels - *run_sdgmssl_svhn.py*.
-* script running a new model on the NORB datasets with only 1000 labels - *run_sdgmssl_norb.py*.
 
+Please see the source code and code examples for further details. For some visualisations of the latent space and the
+half moon classification examples, see https://youtu.be/g-c-xOmA2nA, https://youtu.be/hnhkKTSdmls and https://youtu.be/O8-VYr4CxsI.
 
-Please see the source code and code examples for further details.

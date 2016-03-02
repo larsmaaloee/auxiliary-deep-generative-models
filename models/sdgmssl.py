@@ -141,20 +141,20 @@ class SDGMSSL(Model):
         l_y_to_px = DimshuffleLayer(l_y_to_px, (0, 'x', 'x', 1))
         l_qz_to_px = DenseLayer(l_qz_axy, px_hid[0], init.GlorotNormal(hid_w), init.Normal(init_w), None)
         l_qz_to_px = ReshapeLayer(l_qz_to_px, (-1, self.sym_samples, 1, px_hid[0]))
-        l_px_zy = ReshapeLayer(ElemwiseSumLayer([l_qa_to_px, l_qz_to_px, l_y_to_px]), [-1, px_hid[0]])
+        l_px_azy = ReshapeLayer(ElemwiseSumLayer([l_qa_to_px, l_qz_to_px, l_y_to_px]), [-1, px_hid[0]])
         if batchnorm:
-            l_px_zy = BatchNormLayer(l_px_zy)
-        l_px_zy = NonlinearityLayer(l_px_zy, self.transf)
+            l_px_azy = BatchNormLayer(l_px_azy)
+        l_px_azy = NonlinearityLayer(l_px_azy, self.transf)
         if len(px_hid) > 1:
             for hid in px_hid[1:]:
-                l_px_zy = dense_layer(l_px_zy, hid)
+                l_px_azy = dense_layer(l_px_azy, hid)
 
         if x_dist == 'bernoulli':
-            l_px_zy = DenseLayer(l_px_zy, n_x, init.GlorotNormal(), init.Normal(init_w), sigmoid)
+            l_px_azy = DenseLayer(l_px_azy, n_x, init.GlorotNormal(), init.Normal(init_w), sigmoid)
         elif x_dist == 'multinomial':
-            l_px_zy = DenseLayer(l_px_zy, n_x, init.GlorotNormal(), init.Normal(init_w), softmax)
+            l_px_azy = DenseLayer(l_px_azy, n_x, init.GlorotNormal(), init.Normal(init_w), softmax)
         elif x_dist == 'gaussian':
-            l_px_zy, l_px_zy_mu, l_px_zy_logvar = stochastic_layer(l_px_zy, n_x, 1, px_nonlinearity)
+            l_px_azy, l_px_zy_mu, l_px_zy_logvar = stochastic_layer(l_px_azy, n_x, 1, px_nonlinearity)
 
         # Reshape all the model layers to have the same size
         self.l_x_in = l_x_in
@@ -175,7 +175,7 @@ class SDGMSSL(Model):
         self.l_pa_mu = ReshapeLayer(l_pa_zy_mu, (-1, self.sym_samples, 1, n_a))
         self.l_pa_logvar = ReshapeLayer(l_pa_zy_logvar, (-1, self.sym_samples, 1, n_a))
 
-        self.l_px = ReshapeLayer(l_px_zy, (-1, self.sym_samples, 1, n_x))
+        self.l_px = ReshapeLayer(l_px_azy, (-1, self.sym_samples, 1, n_x))
         self.l_px_mu = ReshapeLayer(l_px_zy_mu, (-1, self.sym_samples, 1, n_x)) if x_dist == "gaussian" else None
         self.l_px_logvar = ReshapeLayer(l_px_zy_logvar,
                                         (-1, self.sym_samples, 1, n_x)) if x_dist == "gaussian" else None

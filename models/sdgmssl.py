@@ -177,7 +177,8 @@ class SDGMSSL(Model):
 
         self.l_px = ReshapeLayer(l_px_zy, (-1, self.sym_samples, 1, n_x))
         self.l_px_mu = ReshapeLayer(l_px_zy_mu, (-1, self.sym_samples, 1, n_x)) if x_dist == "gaussian" else None
-        self.l_px_logvar = ReshapeLayer(l_px_zy_logvar, (-1, self.sym_samples, 1, n_x)) if x_dist == "gaussian" else None
+        self.l_px_logvar = ReshapeLayer(l_px_zy_logvar,
+                                        (-1, self.sym_samples, 1, n_x)) if x_dist == "gaussian" else None
 
         # Predefined functions
         inputs = [self.sym_x_l, self.sym_samples]
@@ -187,6 +188,14 @@ class SDGMSSL(Model):
         inputs = [self.sym_x_l, self.sym_samples]
         outputs = get_output(self.l_qa, self.sym_x_l, deterministic=True).mean(axis=(1, 2))
         self.f_qa = theano.function(inputs, outputs)
+
+        inputs = {l_qz_axy: self.sym_z, l_y_in: self.sym_t_l}
+        outputs = get_output(self.l_pa, inputs, deterministic=True)
+        self.f_pa = theano.function([self.sym_z, self.sym_t_l, self.sym_samples], outputs)
+
+        inputs = {l_qa_x: self.sym_a, l_qz_axy: self.sym_z, l_y_in: self.sym_t_l}
+        outputs = get_output(self.l_px, inputs, deterministic=True)
+        self.f_px = theano.function([self.sym_a, self.sym_z, self.sym_t_l, self.sym_samples], outputs)
 
         # Define model parameters
         self.model_params = get_all_params([self.l_qy, self.l_pa, self.l_px])
@@ -224,7 +233,7 @@ class SDGMSSL(Model):
             l_log_px = GaussianLogDensityLayer(self.l_x_in, self.l_px_mu, self.l_px_logvar)
 
         def lower_bound(log_pa, log_qa, log_pz, log_qz, log_py, log_px):
-            lb = log_px + log_py + log_pz + log_pa.mean(axis=(1,2), keepdims=True) - log_qa - log_qz
+            lb = log_px + log_py + log_pz + log_pa - log_qa - log_qz
             return lb
 
         # Lower bound for labeled data
@@ -236,9 +245,9 @@ class SDGMSSL(Model):
         py_l = softmax(T.zeros((self.sym_x_l.shape[0], self.n_y)))
         log_py_l = -categorical_crossentropy(py_l, self.sym_t_l).reshape((-1, 1)).dimshuffle((0, 'x', 'x', 1))
         lb_l = lower_bound(log_pa_l, log_qa_x_l, log_pz_l, log_qz_axy_l, log_py_l, log_px_zy_l)
-        lb_l = lb_l.mean(axis=(1, 2)) # Mean over the sampling dimensions
-        log_qy_ax_l *= (self.sym_beta * (n/n_l)) # Scale the supervised cross entropy with the alpha constant
-        lb_l -= log_qy_ax_l.mean(axis=(1, 2)) # Collect the lower bound term and mean over sampling dimensions
+        lb_l = lb_l.mean(axis=(1, 2))  # Mean over the sampling dimensions
+        log_qy_ax_l *= (self.sym_beta * (n / n_l))  # Scale the supervised cross entropy with the alpha constant
+        lb_l -= log_qy_ax_l.mean(axis=(1, 2))  # Collect the lower bound term and mean over sampling dimensions
 
         # Lower bound for unlabeled data
         bs_u = self.sym_x_u.shape[0]
@@ -258,7 +267,8 @@ class SDGMSSL(Model):
 
         # Since the expectation of var a is outside the integration we calculate E_q(a|x) first
         a_x_u = get_output(self.l_qa, self.sym_x_u, batch_norm_update_averages=True, batch_norm_use_averages=False)
-        a_x_u_rep = a_x_u.reshape((1, bs_u * self.sym_samples, self.n_a)).repeat(self.n_y, axis=0).reshape((-1, self.n_a))
+        a_x_u_rep = a_x_u.reshape((1, bs_u * self.sym_samples, self.n_a)).repeat(self.n_y, axis=0).reshape(
+            (-1, self.n_a))
         out_layers = [l_log_pa, l_log_pz, l_log_qa, l_log_qz, l_log_px]
         inputs = {self.l_x_in: x_u, self.l_y_in: t_u, self.l_a_in: a_x_u_rep}
         out = get_output(out_layers, inputs, batch_norm_update_averages=False, batch_norm_use_averages=False)
@@ -267,9 +277,10 @@ class SDGMSSL(Model):
         py_u = softmax(T.zeros((bs_u * self.n_y, self.n_y)))
         log_py_u = -categorical_crossentropy(py_u, t_u).reshape((-1, 1)).dimshuffle((0, 'x', 'x', 1))
         lb_u = lower_bound(log_pa_u, log_qa_x_u, log_pz_u, log_qz_axy_u, log_py_u, log_px_zy_u)
-        lb_u = lb_u.reshape((self.n_y, self.sym_samples, 1, bs_u)).transpose(3, 1, 2, 0).mean(axis=(1, 2))
+        lb_u = lb_u.reshape((self.n_y, 1, 1, bs_u)).transpose(3, 1, 2, 0).mean(axis=(1, 2))
         inputs = {self.l_x_in: self.sym_x_u, self.l_a_in: a_x_u.reshape((-1, self.n_a))}
-        y_u = get_output(self.l_qy, inputs, batch_norm_update_averages=True, batch_norm_use_averages=False).mean(axis=(1, 2))
+        y_u = get_output(self.l_qy, inputs, batch_norm_update_averages=True, batch_norm_use_averages=False).mean(
+            axis=(1, 2))
         y_u += 1e-8  # Ensure that we get no NANs when calculating the entropy
         y_u /= T.sum(y_u, axis=1, keepdims=True)
         lb_u = (y_u * (lb_u - T.log(y_u))).sum(axis=1)
@@ -293,13 +304,14 @@ class SDGMSSL(Model):
         lb_unlabeled = -lb_u.mean()
         log_px = log_px_zy_u.mean() + log_px_zy_l.mean()
 
-        grads = T.grad(elbo, self.trainable_model_params)
-        clip_grad, max_norm = 1, 5
-        mgrads = total_norm_constraint(grads, max_norm=max_norm)
-        mgrads = [T.clip(g, -clip_grad, clip_grad) for g in mgrads]
+        grads_collect = T.grad(elbo, self.trainable_model_params)
+        params_collect = self.trainable_model_params
         sym_beta1 = T.scalar('beta1')
         sym_beta2 = T.scalar('beta2')
-        updates = adam(mgrads, self.trainable_model_params, self.sym_lr, sym_beta1, sym_beta2)
+        clip_grad, max_norm = 1, 5
+        mgrads = total_norm_constraint(grads_collect, max_norm=max_norm)
+        mgrads = [T.clip(g, -clip_grad, clip_grad) for g in mgrads]
+        updates = adam(mgrads, params_collect, self.sym_lr, sym_beta1, sym_beta2)
 
         # Training function
         indices = self._srng.choice(size=[self.sym_bs_l], a=sh_train_x_l.shape[0], replace=False)
@@ -368,6 +380,6 @@ class SDGMSSL(Model):
         s += 'model q(a|x): %s.\n' % str(qa_shapes)[1:-1]
         s += 'model q(z|a,x,y): %s.\n' % str(qz_shapes)[1:-1]
         s += 'model q(y|a,x): %s.\n' % str(qy_shapes)[1:-1]
-        s += 'model p(x|z,y): %s.\n' % str(px_shapes)[1:-1]
+        s += 'model p(x|a,z,y): %s.\n' % str(px_shapes)[1:-1]
         s += 'model p(a|z,y): %s.' % str(pa_shapes)[1:-1]
         return s

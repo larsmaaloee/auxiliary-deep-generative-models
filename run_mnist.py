@@ -1,18 +1,16 @@
 import theano.sandbox.cuda  # TODO delete
-theano.sandbox.cuda.use('gpu2')  # TODO delete
+theano.sandbox.cuda.use('gpu1')  # TODO delete
 import theano
 from training.train import TrainModel
 from lasagne_extensions.nonlinearities import rectify
 from data_loaders import mnist
 from models.sdgmssl import SDGMSSL
-import matplotlib.pyplot as plt
-from sklearn.decomposition import PCA
 import numpy as np
 
 
 def run_sdgmssl_mnist():
     """
-    Train an auxiliary deep generative model on the mnist dataset with 100 evenly distributed labels.
+    Train a skip deep generative model on the mnist dataset with 100 evenly distributed labels.
     """
     seed = np.random.randint(1, 2147462579)
     n_labeled = 100  # The total number of labeled data points.
@@ -37,9 +35,9 @@ def run_sdgmssl_mnist():
     train_args['inputs']['learningrate'] = 3e-4
     train_args['inputs']['beta1'] = 0.9
     train_args['inputs']['beta2'] = 0.999
-    train_args['inputs']['samples'] = 1
-    test_args['inputs']['samples'] = 1
-    validate_args['inputs']['samples'] = 1
+    train_args['inputs']['samples'] = 5
+    test_args['inputs']['samples'] = 5
+    validate_args['inputs']['samples'] = 5
 
     # Evaluate the approximated classification error with 100 MC samples for a good estimate
     # and output PCA plot of variable a.
@@ -50,22 +48,10 @@ def run_sdgmssl_mnist():
         missclass = (np.sum(y_class != t_class, dtype='float32') / len(y_class)) * 100.
         train.write_to_logger("test 100-samples: %0.2f%%." % missclass)
 
-        a = model.f_qa(mnist_data[2][0], 1)
-        pca = PCA(n_components=2)
-        pca_a = pca.fit_transform(a)
-        plt.figure()
-        color = iter(plt.get_cmap('brg')(np.linspace(0, 1.0, 10)))
-        for i in range(10):
-            c = next(color)
-            x = pca_a[np.argmax(mnist_data[2][1], axis=1) == i, :]
-            plt.scatter(x[:, 0], x[:, 1], c=c, s=5., lw=0, marker='o', label=str(i))
-        plt.legend()
-        plt.savefig(path.replace(".png", "") + "_a_dist.png", format='png')
-
     # Define training loop. Output training evaluations every 1 epoch
     # and the custom evaluation method every 10 epochs.
     train = TrainModel(model=model, output_freq=1, pickle_f_custom_freq=10, f_custom_eval=custom_evaluation)
-    train.add_initial_training_notes("Training the auxiliary deep generative model with %i labels. bn %s. seed %i." % (
+    train.add_initial_training_notes("Training the skip deep generative model with %i labels. bn %s. seed %i." % (
     n_labeled, str(model.batchnorm), seed))
     train.train_model(f_train, train_args,
                       f_test, test_args,

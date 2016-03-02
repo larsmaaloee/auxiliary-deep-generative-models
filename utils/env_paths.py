@@ -4,22 +4,17 @@ import time
 import datetime
 import uuid
 
+
 # Root paths
-def get_project_name():
-    return 'auxiliary-deep-generative-models'
-
-
 def get_data_path(dataset=""):
-    project_name = get_project_name()
     full_path = abspath('.')
-    path = join(full_path[:full_path.find(project_name) + len(project_name)], 'data', dataset)
+    path = join(full_path, 'data', dataset)
     return path_exists(path)
 
 
 def get_output_path():
-    project_name = get_project_name()
     full_path = abspath('.')
-    path = join(full_path[:full_path.find(project_name) + len(project_name)], 'output')
+    path = join(full_path, 'output')
     return path_exists(path)
 
 

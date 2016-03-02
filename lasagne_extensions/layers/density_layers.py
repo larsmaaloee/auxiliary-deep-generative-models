@@ -17,7 +17,7 @@ class StandardNormalLogDensityLayer(lasagne.layers.MergeLayer):
         x = input.pop(0)
         c = - 0.5 * math.log(2 * math.pi)
         density = c - T.sqr(x) / 2
-        return T.sum(density, axis=-1, keepdims=True)
+        return T.mean(T.sum(density, axis=-1, keepdims=True), axis=(1, 2), keepdims=True)
 
 
 class GaussianLogDensityLayer(lasagne.layers.MergeLayer):
@@ -45,7 +45,7 @@ class GaussianLogDensityLayer(lasagne.layers.MergeLayer):
 
         c = - 0.5 * math.log(2 * math.pi)
         density = c - logvar / 2 - (x - mu) ** 2 / (2 * T.exp(logvar))
-        return T.sum(density, axis=-1, keepdims=True)
+        return T.mean(T.sum(density, axis=-1, keepdims=True), axis=(1, 2), keepdims=True)
 
 
 class BernoulliLogDensityLayer(lasagne.layers.MergeLayer):
@@ -71,7 +71,8 @@ class BernoulliLogDensityLayer(lasagne.layers.MergeLayer):
             x = x.dimshuffle((0, 'x', 'x', 1))
 
         x_mu = T.clip(x_mu, self.eps, 1 - self.eps)
-        density = T.sum(-T.nnet.binary_crossentropy(x_mu, x), axis=-1, keepdims=True)
+        density = T.mean(T.sum(-T.nnet.binary_crossentropy(x_mu, x), axis=-1, keepdims=True), axis=(1, 2),
+                         keepdims=True)
         return density
 
 

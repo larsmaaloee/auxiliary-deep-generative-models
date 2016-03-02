@@ -27,6 +27,9 @@ class TrainModel(Train):
 
         self.write_to_logger("### TRAINING MODEL ###")
 
+        if self.custom_eval_func is not None:
+            self.custom_eval_func(self.model, paths.get_custom_eval_path(0, self.model.root_path))
+
         done_looping = False
         epoch = 0
         while (epoch < n_epochs) and (not done_looping):

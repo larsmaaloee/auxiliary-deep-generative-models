@@ -1,5 +1,3 @@
-import theano.sandbox.cuda  # TODO delete
-theano.sandbox.cuda.use('gpu1')  # TODO delete
 import theano
 from training.train import TrainModel
 from lasagne_extensions.nonlinearities import rectify

@@ -38,7 +38,6 @@ def run_sdgmssl_mnist():
     validate_args['inputs']['samples'] = 5
 
     # Evaluate the approximated classification error with 100 MC samples for a good estimate
-    # and output PCA plot of variable a.
     def custom_evaluation(model, path):
         mean_evals = model.get_output(mnist_data[2][0], 100)
         t_class = np.argmax(mnist_data[2][1], axis=1)

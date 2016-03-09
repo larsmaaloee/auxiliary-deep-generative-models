@@ -93,7 +93,6 @@ class SDGMSSL(Model):
         l_qa_to_qy = DenseLayer(l_qa_x, qy_hid[0], init.GlorotNormal(hid_w), init.Normal(init_w), None)
         l_qa_to_qy = ReshapeLayer(l_qa_to_qy, (-1, self.sym_samples, 1, qy_hid[0]))
         l_x_to_qy = DenseLayer(l_x_in, qy_hid[0], init.GlorotNormal(hid_w), init.Normal(init_w), None)
-        self.l_x_to_qy = l_x_to_qy
         l_x_to_qy = DimshuffleLayer(l_x_to_qy, (0, 'x', 'x', 1))
         l_qy_xa = ReshapeLayer(ElemwiseSumLayer([l_qa_to_qy, l_x_to_qy]), (-1, qy_hid[0]))
         if batchnorm:

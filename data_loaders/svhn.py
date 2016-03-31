@@ -12,6 +12,7 @@ def _download(extra=False, normalize=True):
     """
 
     def norm(x):
+        x = x.swapaxes(2,3).swapaxes(1,2)
         x = x.reshape((-1, 3, 32 * 32))
         std = x.std(axis=(-1, 0))
         x[:, 0] /= std[0]
@@ -29,8 +30,8 @@ def _download(extra=False, normalize=True):
         train_x = norm(train_x)
         test_x = norm(test_x)
 
-    train_t = np.array(train_t - 1, dtype='float32').reshape(-1)
-    test_t = np.array(test_t - 1, dtype='float32').reshape(-1)
+    train_t = np.array(train_t, dtype='float32').reshape(-1)
+    test_t = np.array(test_t, dtype='float32').reshape(-1)
 
     # Dummy validation set. NOTE: still in training set.
     idx = np.random.randint(0, train_x.shape[0] - 1, 5000)
@@ -69,7 +70,7 @@ def load_supervised(conv=False, extra=False, normalize=True):
     return train_set, test_set, valid_set
 
 
-def load_semi_supervised(n_labeled=100, cut_off=1000, seed=123456, conv=False, extra=False):
+def load_semi_supervised(n_labeled=1000, cut_off=1000, seed=123456, conv=False, extra=False):
     """
     Load the SVHN dataset where only a fraction of data points are labeled. The amount
     of labeled data will be evenly distributed accross classes.

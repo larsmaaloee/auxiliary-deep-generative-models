@@ -35,7 +35,7 @@ def create_semi_supervised(xy, n_labeled, rng):
     :return: labeled x, labeled y, unlabeled x, unlabeled y.
     """
     x, y = xy
-    n_classes = np.max(y) + 1
+    n_classes = int(np.max(y) + 1)
 
     def _split_by_class(x, y, n_c):
         x, y = x.T, y.T

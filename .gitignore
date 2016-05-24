@@ -4,3 +4,7 @@
 *.log
 *.mp4
 *.xml
+*.npy
+*.npz
+*.gz
+*.pickle
